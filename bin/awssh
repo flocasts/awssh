@@ -1,5 +1,5 @@
 
-source $(dirname ${BASH_SOURCE[0]})/config.cfg
+source $(dirname ${BASH_SOURCE[0]})/../config/config.cfg
 
 openURL() {
 	if which xdg-open > /dev/null
@@ -49,6 +49,10 @@ sub_list() {
 	IFS=";"
 	running_instances=($(aws $profile ec2 describe-instances --output json --filter "Name=instance-state-name,Values=running" | jq '[ .Reservations[].Instances[0].Tags[] | select(.Key | startswith("Name")) | .Value ]' | jq --raw-output 'sort | join(";")'))
 	IFS=$OIFS
+	if [[ $competion_override == true ]]; then
+		echo ${running_instances[@]}
+		exit
+	fi
 	echo -e "${YELLOW}${BOLD}Here are your running instances:${RESET}${GREEN}"
 	echo
 
@@ -59,6 +63,7 @@ sub_list() {
 	echo -e "${RESET}"
 	exit;
 }
+
 sub_login() {
 	if [ -z ${parameters[0]} ]; then
 		echo -e "\033[31m\033[1mYou must specify an instance name!!!\033[0m\033[39m"
@@ -87,6 +92,10 @@ do
 		-k | --key)
 		key="$2" 
 		shift 2
+		;;
+		--competion-override)
+		competion_override=true
+		shift
 		;;
 		--) # End of all options
 		shift
