@@ -80,6 +80,22 @@ sub_login() {
 	exit;
 }
 
+sub_help() {
+cat <<EOF
+Usage: ${0##*/} <subcommand> [options]
+	Subcommands:
+		list               Lists all running instances
+		login <instance>   Logs into a particular instance
+
+	Options:
+		-p --profile       Set a specific profile to use with aws
+		-k --key           Overrides the default ssh key (default ~/.ssh/id_rsa)
+EOF
+# For help with each subcommand run:
+# 	${0##*/} <subcommand> -h|--help
+
+}
+
 while (( "$#" )); 
 do
 	case "$1" in
@@ -93,9 +109,9 @@ do
 		key="$2" 
 		shift 2
 		;;
-		--competion-override)
-		competion_override=true
-		shift
+		-h | --help)
+		sub_help
+		exit
 		;;
 		--) # End of all options
 		shift
@@ -125,6 +141,11 @@ do
 done
 
 check_aws_config
+
+if [[ ${functions[*]} < 1 ]]; then
+	sub_help
+	exit;
+fi
 
 for f in ${!functions[@]}
 do
